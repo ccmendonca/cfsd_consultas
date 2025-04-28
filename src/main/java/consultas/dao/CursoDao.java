@@ -1,8 +1,11 @@
 package consultas.dao;
 
 import consultas.dbconexao.DBConecta;
+import consultas.dbconexao.DatabaseConnection;
 import consultas.modelo.Curso;
 import jakarta.ejb.Stateless;
+
+import java.lang.invoke.MethodHandles;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,37 +13,33 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
- *
- * @author <a href="mailto:caludiomendonca.operclaudio01@gmail.com">Cláudio Mendonça</a>
- * 
+ * @author <a href="mailto:caludiomendonca.operclaudio01@gmail.com">Cláudio
+ * Mendonça</a>
  */
 @Stateless
-public class CursoDAO {
-    
+public class CursoDao {
+
+    private static final Logger LOG = Logger.getLogger(MethodHandles.lookup().lookupClass().getName());
+
     Connection con = null;
     PreparedStatement ps = null;
     ResultSet rs = null;
-    
-    public static final String LIST_ALL = "select * from tblcursos";
-    public static final String LIST_BY_ID = "select * from tblcursos where CodigoDoCurso = ?";
-    public static final String LIST_BY_NAME = "select CodigoDoCurso, NomeDoCurso, PrecoUnitario from tblcursos where NomeDoCurso = ?";
-    
-    public static void populatFields(Curso curso, ResultSet rs) throws SQLException {
+
+    public static final String LIST_ALL = "SELECT * FROM TblCursos";
+    public static final String LIST_BY_ID = "SELECT * FROM TblCursos WHERE CodigoDoCurso = ?";
+    public static final String LIST_BY_NAME = "SELECT * FROM TblCursos WHERE NomeDoCurso LIKE ?";
+
+    public static void populateFields(Curso curso, ResultSet rs) throws SQLException {
         curso.setCodigo(rs.getString("CodigoDoCurso"));
         curso.setName(rs.getString("NomeDoCurso"));
         curso.setPreco(rs.getDouble("PrecoUnitario"));
-        
+
     }
 
-    /**
-     *
-     * @return 
-     * @mostra lista contendo todos os cursos da dase de dados
-     * @mostra lista contendo apenas o curso especificado por codigo
-     * @mostra lista contendo apenas o curso especificado por nome
-     */
     public List<Curso> selectAll() {
         List<Curso> cursos = new ArrayList<>();
         try {
@@ -49,52 +48,54 @@ public class CursoDAO {
             rs = ps.executeQuery();
             while (rs.next()) {
                 var curso = new Curso();
-                populatFields(curso, rs);
+                populateFields(curso, rs);
                 cursos.add(curso);
             }
         } catch (SQLException ex) {
-            System.err.println("Erro de leitura de dados" + ex.getLocalizedMessage());
+            String msg = ex.getLocalizedMessage();
+            LOG.log(Level.SEVERE, ex, () -> "Erro de leitura de dados: " + msg);
         }
+
         return cursos;
     }
-    
-    public Optional<Curso> selectById(Integer codigo) {
-        List<Curso> cursos = new ArrayList<>();
+
+    public Optional<Curso> selectById(String codigo) {
         try {
-            con = DBConecta.getConexao();
+            con = DatabaseConnection.getConnection();
             ps = con.prepareStatement(LIST_BY_ID);
-            ps.setInt(1, codigo);
+            ps.setString(1, codigo);
             rs = ps.executeQuery();
-            while (rs.next()) {
-                var curso = new Curso();
+            if (rs.next()) {
+                Curso curso = new Curso();
+                populateFields(curso, rs);
                 return Optional.of(curso);
             }
-            
         } catch (SQLException ex) {
-            System.err.println("Erro de leitura de dados" + ex.getLocalizedMessage());
+            String msg = ex.getLocalizedMessage();
+            LOG.log(Level.SEVERE, ex, () -> "Erro de leitura de dados: " + msg);
         }
-        
+
         return Optional.empty();
     }
 
     public List<Curso> selectByName(String name) {
         List<Curso> cursos = new ArrayList<>();
         try {
-            con = DBConecta.getConexao();
+            con = DatabaseConnection.getConnection();
             ps = con.prepareStatement(LIST_BY_NAME);
-            ps.setString(1, name);
+            ps.setString(1, "%" + name + "%");
             rs = ps.executeQuery();
             while (rs.next()) {
                 var curso = new Curso();
-                populatFields(curso, rs);
+                populateFields(curso, rs);
                 cursos.add(curso);
             }
-            
+
         } catch (SQLException ex) {
-            System.err.println("Erro de leitura de dados" + ex.getLocalizedMessage());
+            LOG.log(Level.SEVERE, ex, () -> "Erro de leitura de dados: " + ex.getLocalizedMessage());
         }
-        
+
         return cursos;
-        
-    }    
+
+    }
 }

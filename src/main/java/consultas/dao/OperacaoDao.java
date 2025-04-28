@@ -1,8 +1,10 @@
 package consultas.dao;
 
 import consultas.dbconexao.DBConecta;
+import consultas.dbconexao.DatabaseConnection;
 import consultas.modelo.Operacao;
 import jakarta.ejb.Stateless;
+
 import java.lang.invoke.MethodHandles;
 import java.sql.Connection;
 
@@ -25,15 +27,18 @@ import java.util.logging.Logger;
 public class OperacaoDao extends Dao<Operacao, String> {
 
     private static final Logger LOG = Logger.getLogger(MethodHandles.lookup().lookupClass().getName());
+    private static final String FIND_ALL = "SELECT * FROM TblOperacoes";
+    private static final String FIND_BY_ID = "SELECT * FROM TblOperacoes";
+    private static final String FIND_BY_CHAVE = "SELECT * FROM TblOperacoes";
 
     /**
      * Preenche os campos do objeto passado com os dados da base de dados.
      *
      * @param operacao Instância de {@link Operacao} com os campos a serem
-     * preenchidos.
-     * @param rs Instância de {@link ResultSet} com os dados a serem obtidos.
+     *                 preenchidos.
+     * @param rs       Instância de {@link ResultSet} com os dados a serem obtidos.
      * @throws SQLException No caso de algum erro durante a operação, propagar a
-     * exceção.
+     *                      exceção.
      */
     public static void populateFields(Operacao operacao, ResultSet rs) throws SQLException {
         operacao.setChave(rs.getInt("ChaveDaOperacao"));
@@ -49,8 +54,8 @@ public class OperacaoDao extends Dao<Operacao, String> {
     @Override
     public List<Operacao> findAll() {
         List<Operacao> operacoes = new ArrayList<>();
-        try (Connection conn = DBConecta.getConexao()) {
-            var rs = query(conn, "SELECT * FROM tbloperacoes");
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            var rs = query(conn, FIND_ALL);
             while (rs.next()) {
                 var operacao = new Operacao();
                 populateFields(operacao, rs);
@@ -71,8 +76,8 @@ public class OperacaoDao extends Dao<Operacao, String> {
      */
     @Override
     public Optional<Operacao> findById(String codigo) {
-        try (Connection conn = DBConecta.getConexao()) {
-            var rs = query(conn, "SELECT * FROM tbloperacoes");
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            var rs = query(conn, FIND_BY_ID);
             if (rs.next()) {
                 var operacao = new Operacao();
                 populateFields(operacao, rs);
@@ -85,6 +90,11 @@ public class OperacaoDao extends Dao<Operacao, String> {
         return Optional.empty();
     }
 
+    @Override
+    public List<Operacao> search(Object param) {
+        return List.of();
+    }
+
     /**
      * Lista todas as operações na base de dados com a chave especificada.
      *
@@ -93,8 +103,8 @@ public class OperacaoDao extends Dao<Operacao, String> {
      */
     public List<Operacao> findByChave(Integer chave) {
         List<Operacao> operacoes = new ArrayList<>();
-        try (Connection conn = DBConecta.getConexao()) {
-            var rs = query(conn, "SELECT * FROM tbloperacoes WHERE ChaveDaOperacao = ?", chave);
+        try (Connection conn =DatabaseConnection.getConnection()) {
+            var rs = query(conn, FIND_BY_CHAVE, chave);
             while (rs.next()) {
                 var operacao = new Operacao();
                 populateFields(operacao, rs);

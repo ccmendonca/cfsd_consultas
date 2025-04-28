@@ -4,21 +4,14 @@
     background-color: #045491;
     color: white;
     padding: 40px;
-    margin: 50px 0px 10px 0px;
+    margin: 0 0 10px 0;
 }
 
 #bottom {
     position: relative;
     background-color: #c2dfef;
     padding: 30px;
-    margin: 100px 0px 0px 0px;
-}
-
-#left {
-    float: left;
-    background-color: #045491;
-    padding: 20px;
-    width: 260px;
+    margin: 0;
 }
 
 #right {
@@ -37,7 +30,7 @@
 .left_content {
     background-color: #dddddd;
     padding: 133px;
-    margin-left: 260px;
+    margin-left: 0px;
 }
 
 .right_content {
@@ -59,3 +52,7 @@
 }
 
 
+.center {
+    display: grid;
+    place-items: center;
+}
